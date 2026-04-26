@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard de Anomalias</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .metric {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .label {
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .upload {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="file"] {
+            background: #334155;
+            border: none;
+            padding: 8px;
+            border-radius: 8px;
+            color: white;
+        }
+
+        button {
+            background: #3b82f6;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #2563eb;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .alert-ok {
+            background: #064e3b;
+            color: #34d399;
+        }
+
+        .alert-danger {
+            background: #7f1d1d;
+            color: #f87171;
+        }
+
+        canvas {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <h1>📊 Dashboard de Anomalias</h1>
+
+    <div class="card">
+        <form method="post" enctype="multipart/form-data" class="upload">
+            <input type="file" name="file" required>
+            <button type="submit">Enviar CSV</button>
+        </form>
+    </div>
+
+    {% if total %}
+    <div class="grid">
+        <div class="card">
+            <div class="label">Total de Requisições</div>
+            <div class="metric">{{ total }}</div>
+        </div>
+
+        <div class="card">
+            <div class="label">Anomalias</div>
+            <div class="metric">{{ anomalies }}</div>
+        </div>
+
+        <div class="card">
+            <div class="label">Percentual</div>
+            <div class="metric">{{ perc }}%</div>
+        </div>
+    </div>
+
+    <div class="card">
+        {% if alerta %}
+            <div class="alert alert-danger">
+                🚨 ALERTA: Alta taxa de anomalias detectada!
+            </div>
+        {% else %}
+            <div class="alert alert-ok">
+                ✅ Sistema estável
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h3>Latência ao longo do tempo</h3>
+        <canvas id="grafico"></canvas>
+    </div>
+
+    <script>
+        const latencias = {{ latencias | safe }};
+
+        const ctx = document.getElementById('grafico');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: latencias.map((_, i) => i),
+                datasets: [{
+                    label: 'Latência (ms)',
+                    data: latencias,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: "#e2e8f0"
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: "#94a3b8" }
+                    },
+                    y: {
+                        ticks: { color: "#94a3b8" }
+                    }
+                }
+            }
+        });
+    </script>
+    {% endif %}
+
+</div>
+
+</body>
+</html>
